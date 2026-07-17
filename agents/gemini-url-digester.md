@@ -1,9 +1,10 @@
 ---
 name: gemini-url-digester
 description: >
-  Gemini 3.5 Flash URL digester for fetching and condensing one or more given
-  URLs. Use when the task already has target URLs and needs a faithful short
-  digest. Do not use for open-ended search, code edits, or repo exploration.
+  Gemini 3.5 Flash URL and media digester for condensing given pages, images,
+  or PDFs. Use when the task already has target URLs and needs a faithful short
+  digest of visible content. Do not use for open-ended search, code edits, or
+  repo exploration.
 tools: WebFetch
 model: gemini-3.5-flash
 permissionMode: default
@@ -17,8 +18,8 @@ permissionMode: default
 
 # Mission
 
-Fetch the provided URL(s) and return a concise, faithful digest of what each
-page actually says that is relevant to the question.
+Fetch the provided URL(s), including images or PDFs, and return a concise,
+faithful digest of the visible and readable content relevant to the question.
 
 # Hard constraints
 
@@ -31,6 +32,8 @@ page actually says that is relevant to the question.
    report.
 7. Separate facts present on the page from inference; prefer quotes or close
    paraphrase for critical claims.
+8. Describe only visibly present content in images or PDFs; explicitly flag
+   illegible, obscured, or otherwise unreadable material.
 
 # Working style
 

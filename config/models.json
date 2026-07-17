@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default_subagent_model": "grok-4.5",
+  "roles": {
+    "supervisor":         { "model": "gpt-5.6-sol",      "channel": "gateway", "agent": null,                   "required_in_catalog": true,  "metered": false },
+    "compaction":         { "model": "gpt-5.6-luna",     "channel": "gateway", "agent": null,                   "required_in_catalog": true,  "metered": false },
+    "oracle":             { "model": "fable-5",          "channel": "native",  "agent": null,                   "required_in_catalog": false, "metered": false },
+    "coding_worker":      { "model": "grok-4.5",         "channel": "gateway", "agent": "grok-worker",          "required_in_catalog": true,  "metered": false },
+    "frontend_worker":    { "model": "kimi-k3",          "channel": "gateway", "agent": "kimi-frontend-worker", "required_in_catalog": true,  "metered": true },
+    "researcher":         { "model": "grok-4.5",         "channel": "gateway", "agent": "grok-researcher",      "required_in_catalog": true,  "metered": false },
+    "repo_explorer":      { "model": "gpt-5.6-terra",    "channel": "gateway", "agent": "gpt-repo-explorer",    "required_in_catalog": true,  "metered": false },
+    "url_media_digester": { "model": "gemini-3.5-flash", "channel": "gateway", "agent": "gemini-url-digester",  "required_in_catalog": true,  "metered": false },
+    "transcript_reader":  { "model": "glm-5.2",          "channel": "gateway", "agent": "glm-transcript-reader","required_in_catalog": true,  "metered": false }
+  }
+}

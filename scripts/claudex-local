@@ -5,15 +5,19 @@ set -euo pipefail
 CONFIG_HOME="${CLAUDEX_LOCAL_CONFIG_HOME:-$HOME/.config/claudex-local}"
 SETTINGS="${CLAUDEX_LOCAL_SETTINGS:-$CONFIG_HOME/settings.json}"
 ORCHESTRATOR="${CLAUDEX_LOCAL_ORCHESTRATOR:-$CONFIG_HOME/orchestrator.md}"
-ROOT_MODEL="${CLAUDEX_LOCAL_ROOT_MODEL:-gpt-5.6-sol}"
+MODELS="$CONFIG_HOME/models.json"
 TOOLS="${CLAUDEX_LOCAL_TOOLS:-Read,Grep,Glob,Bash,Edit,Write,Agent,WebSearch,WebFetch}"
 
-for required in "$SETTINGS" "$ORCHESTRATOR"; do
+for required in "$SETTINGS" "$ORCHESTRATOR" "$MODELS"; do
   if [[ ! -f "$required" ]]; then
     printf 'claudex-local: missing %s; run bootstrap-macos.sh --install first\n' "$required" >&2
     exit 1
   fi
 done
+
+DEFAULT_ROOT_MODEL="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["roles"]["supervisor"]["model"])' "$MODELS")"
+DEFAULT_SUBAGENT_MODEL="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["default_subagent_model"])' "$MODELS")"
+ROOT_MODEL="${CLAUDEX_LOCAL_ROOT_MODEL:-$DEFAULT_ROOT_MODEL}"
 
 has_model=0
 has_effort=0
@@ -80,7 +84,7 @@ if ((has_effort == 0)); then launch+=(--effort "$effort"); fi
 if ((has_tools == 0)); then launch+=(--tools "$TOOLS"); fi
 
 export CLAUDE_CONFIG_DIR="${CLAUDEX_LOCAL_CLAUDE_CONFIG_DIR:-$CONFIG_HOME/claude}"
-export CLAUDE_CODE_SUBAGENT_MODEL="${CLAUDE_CODE_SUBAGENT_MODEL:-grok-4.5}"
+export CLAUDE_CODE_SUBAGENT_MODEL="${CLAUDE_CODE_SUBAGENT_MODEL:-$DEFAULT_SUBAGENT_MODEL}"
 export CLAUDE_CODE_ENABLE_TASKS="${CLAUDE_CODE_ENABLE_TASKS:-true}"
 export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-false}"
 export CLAUDEX_LOCAL_ROOT_MODEL="$ROOT_MODEL"

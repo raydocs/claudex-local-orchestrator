@@ -6,3 +6,14 @@ api-keys:
   - "__LOCAL_API_KEY__"
 
 # Add provider authentication on this Mac. Never fake unavailable model identities.
+
+# Kimi Code subscription endpoint (sk-kimi-… key from kimi.com).
+# For a metered Moonshot open-platform key use https://api.moonshot.ai/v1 instead.
+openai-compatibility:
+  - name: "kimi-code"
+    base-url: "https://api.kimi.com/coding/v1"
+    api-key-entries:
+      - api-key: "__KIMI_API_KEY__"
+    models:
+      - name: "kimi-k3"
+        alias: "kimi-k3"

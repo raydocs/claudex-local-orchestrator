@@ -5,7 +5,7 @@ description: >
   flows, and answering "where/how does X work" questions without modifying the
   tree. Do not use for patches, installs, or external web research.
 tools: Read, Grep, Glob
-model: gpt-5.6
+model: gpt-5.6-terra
 permissionMode: default
 ---
 

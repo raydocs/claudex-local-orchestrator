@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if (($#)); then
+  question="$*"
+else
+  question="$(cat)"
+fi
+
+if [[ -z "$question" ]]; then
+  printf 'oracle-consult: provide a review question or diff description as an argument or stdin\n' >&2
+  exit 2
+fi
+
+prompt_prefix="$(cat <<'EOF'
+You are the Fable 5 oracle acting as a strictly read-only reviewer. Inspect only
+with Read, Grep, and Glob. Never edit files, write files, run shell commands, or
+perform implementation work. Review the request using repository evidence and
+return these sections:
+1. verdict: exactly one of approve / approve-with-changes / reject
+2. evidence: concise path:line references supporting the verdict
+3. ranked risks: highest-risk first, with uncertainty stated explicitly
+EOF
+)"
+
+prompt="$prompt_prefix
+
+Review request:
+$question"
+
+exec env -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN -u CLAUDE_CONFIG_DIR \
+  claude -p --model fable-5 --tools Read,Grep,Glob "$prompt"

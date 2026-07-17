@@ -24,20 +24,33 @@ fail(){ printf 'bootstrap: %s\n' "$*" >&2; exit 1; }
 [[ "$(uname -s)" == Darwin ]] || fail 'macOS is required'
 for cmd in brew node python3 claude cli-proxy-api openssl curl nc launchctl; do command -v "$cmd" >/dev/null || fail "missing $cmd"; done
 BREW_CONFIG="$(brew --prefix)/etc/cliproxyapi.conf"
-for path in config/examples/settings.json.template config/examples/cliproxyapi.yaml.template config/examples/local.claudex-local.model-filter.plist.template config/orchestrator.md scripts/claudex-local adapter/model-filter-proxy.mjs agents; do [[ -e "$ROOT/$path" ]] || fail "missing $path"; done
+for path in config/models.json config/examples/settings.json.template config/examples/cliproxyapi.yaml.template config/examples/local.claudex-local.model-filter.plist.template config/orchestrator.md scripts/claudex-local scripts/oracle-consult adapter/model-filter-proxy.mjs agents; do [[ -e "$ROOT/$path" ]] || fail "missing $path"; done
 printf 'bootstrap: prerequisites PASS\n'
 printf 'bootstrap: adapter 127.0.0.1:8318 -> CLIProxyAPI 127.0.0.1:8317\n'
 [[ "$MODE" == install ]] || exit 0
 backup(){ local p="$1"; if [[ -e "$p" || -L "$p" ]]; then ((REPLACE)) || fail "$p exists; inspect it and rerun with --replace-existing"; cp -pPR "$p" "$p.backup.$STAMP"; fi; }
-for p in "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/claude/agents" "$SHARE/model-filter-proxy.mjs" "$BIN/claudex-local" "$PLIST" "$CLIPROXY" "$BREW_CONFIG"; do backup "$p"; done
+for p in "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/models.json" "$CONFIG/claude/agents" "$SHARE/model-filter-proxy.mjs" "$BIN/claudex-local" "$BIN/oracle-consult" "$PLIST" "$CLIPROXY" "$BREW_CONFIG"; do backup "$p"; done
 mkdir -p "$CONFIG/claude" "$SHARE" "$BIN" "$HOME/.cli-proxy-api" "$HOME/Library/LaunchAgents"
 chmod 0700 "$CONFIG" "$CONFIG/claude" "$HOME/.cli-proxy-api"
 LOCAL_KEY="$(openssl rand -hex 32)"
-export RENDER_HOME="$HOME" RENDER_KEY="$LOCAL_KEY" RENDER_NODE="$(command -v node)" RENDER_ADAPTER="$SHARE/model-filter-proxy.mjs"
+RENDER_KIMI_API_KEY=""
+if [[ -n "${KIMI_API_KEY:-}" ]]; then
+  RENDER_KIMI_API_KEY="$KIMI_API_KEY"
+elif [[ -t 0 ]]; then
+  printf 'bootstrap: Moonshot KIMI_API_KEY (hidden; empty skips): ' >&2
+  IFS= read -r -s RENDER_KIMI_API_KEY || true
+  printf '\n' >&2
+fi
+if [[ -z "$RENDER_KIMI_API_KEY" ]]; then
+  RENDER_KIMI_API_KEY="unset-kimi-key"
+  printf 'bootstrap: WARN Kimi key not provided; kimi-k3 will fail doctor until config.yaml is updated manually\n' >&2
+fi
+export RENDER_HOME="$HOME" RENDER_KEY="$LOCAL_KEY" RENDER_NODE="$(command -v node)" RENDER_ADAPTER="$SHARE/model-filter-proxy.mjs" RENDER_KIMI_API_KEY
 python3 - "$ROOT" "$CONFIG" "$CLIPROXY" "$PLIST" <<'PY2'
 import os, pathlib, sys
 root, config, cliproxy, plist = map(pathlib.Path, sys.argv[1:])
-m = {'__HOME__':os.environ['RENDER_HOME'],'__LOCAL_API_KEY__':os.environ['RENDER_KEY'],'__NODE_BINARY__':os.environ['RENDER_NODE'],'__ADAPTER_PATH__':os.environ['RENDER_ADAPTER']}
+models = __import__('json').loads((root/'config/models.json').read_text())
+m = {'__HOME__':os.environ['RENDER_HOME'],'__LOCAL_API_KEY__':os.environ['RENDER_KEY'],'__KIMI_API_KEY__':os.environ['RENDER_KIMI_API_KEY'],'__NODE_BINARY__':os.environ['RENDER_NODE'],'__ADAPTER_PATH__':os.environ['RENDER_ADAPTER'],'__DEFAULT_SUBAGENT_MODEL__':models['default_subagent_model'],'__COMPACTION_MODEL__':models['roles']['compaction']['model']}
 def render(src,dst):
  t=src.read_text()
  for a,b in m.items(): t=t.replace(a,b)
@@ -48,13 +61,15 @@ render(root/'config/examples/cliproxyapi.yaml.template',cliproxy)
 render(root/'config/examples/local.claudex-local.model-filter.plist.template',plist)
 PY2
 cp "$ROOT/config/orchestrator.md" "$CONFIG/orchestrator.md"
+cp "$ROOT/config/models.json" "$CONFIG/models.json"
 rm -rf "$CONFIG/claude/agents"
 cp -R "$ROOT/agents" "$CONFIG/claude/agents"
 cp "$ROOT/adapter/model-filter-proxy.mjs" "$SHARE/model-filter-proxy.mjs"
 cp "$ROOT/scripts/claudex-local" "$BIN/claudex-local"
-chmod 0600 "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CLIPROXY" "$PLIST"
+cp "$ROOT/scripts/oracle-consult" "$BIN/oracle-consult"
+chmod 0600 "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/models.json" "$CLIPROXY" "$PLIST"
 chmod 0644 "$SHARE/model-filter-proxy.mjs" "$CONFIG/claude/agents"/*.md
-chmod 0755 "$BIN/claudex-local"
+chmod 0755 "$BIN/claudex-local" "$BIN/oracle-consult"
 mkdir -p "$(dirname "$BREW_CONFIG")"
 ln -sfn "$CLIPROXY" "$BREW_CONFIG"
 brew services restart cliproxyapi
