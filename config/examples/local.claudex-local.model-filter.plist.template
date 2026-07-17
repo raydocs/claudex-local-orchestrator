@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>local.claudex-local.model-filter</string>
+<key>ProgramArguments</key><array><string>__NODE_BINARY__</string><string>__ADAPTER_PATH__</string></array>
+<key>EnvironmentVariables</key><dict>
+<key>CLAUDEX_LOCAL_UPSTREAM_HOST</key><string>127.0.0.1</string>
+<key>CLAUDEX_LOCAL_UPSTREAM_PORT</key><string>8317</string>
+<key>CLAUDEX_LOCAL_LISTEN_HOST</key><string>127.0.0.1</string>
+<key>CLAUDEX_LOCAL_LISTEN_PORT</key><string>8318</string>
+<key>CLAUDEX_LOCAL_COMPACTION_MODEL</key><string>gpt-5.6-luna</string>
+</dict>
+<key>RunAtLoad</key><true/><key>KeepAlive</key><true/><key>ProcessType</key><string>Background</string>
+<key>StandardOutPath</key><string>/tmp/claudex-local-adapter.stdout.log</string>
+<key>StandardErrorPath</key><string>/tmp/claudex-local-adapter.stderr.log</string>
+</dict></plist>

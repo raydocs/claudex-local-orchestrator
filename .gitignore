@@ -1,0 +1,11 @@
+.DS_Store
+.env
+*.log
+*.tmp
+node_modules/
+dist/
+coverage/
+.local/
+work/
+.claude/
+.claudex-local/

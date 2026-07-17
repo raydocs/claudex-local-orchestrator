@@ -1,0 +1,8 @@
+# Local-only CLIProxyAPI base configuration.
+host: "127.0.0.1"
+port: 8317
+auth-dir: "__HOME__/.cli-proxy-api"
+api-keys:
+  - "__LOCAL_API_KEY__"
+
+# Add provider authentication on this Mac. Never fake unavailable model identities.

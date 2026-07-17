@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# claudex-local — isolated Claude Code launcher with local multi-model agents.
+set -euo pipefail
+
+CONFIG_HOME="${CLAUDEX_LOCAL_CONFIG_HOME:-$HOME/.config/claudex-local}"
+SETTINGS="${CLAUDEX_LOCAL_SETTINGS:-$CONFIG_HOME/settings.json}"
+ORCHESTRATOR="${CLAUDEX_LOCAL_ORCHESTRATOR:-$CONFIG_HOME/orchestrator.md}"
+ROOT_MODEL="${CLAUDEX_LOCAL_ROOT_MODEL:-gpt-5.6-sol}"
+TOOLS="${CLAUDEX_LOCAL_TOOLS:-Read,Grep,Glob,Bash,Edit,Write,Agent,WebSearch,WebFetch}"
+
+for required in "$SETTINGS" "$ORCHESTRATOR"; do
+  if [[ ! -f "$required" ]]; then
+    printf 'claudex-local: missing %s; run bootstrap-macos.sh --install first\n' "$required" >&2
+    exit 1
+  fi
+done
+
+has_model=0
+has_effort=0
+has_tools=0
+args=()
+prompt_parts=()
+while (($#)); do
+  case "$1" in
+    --model)
+      has_model=1
+      args+=("$1")
+      shift
+      (($#)) || { printf 'claudex-local: --model requires a value\n' >&2; exit 2; }
+      ROOT_MODEL="$1"
+      args+=("$1")
+      shift
+      ;;
+    --model=*)
+      has_model=1
+      ROOT_MODEL="${1#--model=}"
+      args+=("$1")
+      shift
+      ;;
+    --effort)
+      has_effort=1
+      args+=("$1")
+      shift
+      (($#)) || { printf 'claudex-local: --effort requires a value\n' >&2; exit 2; }
+      args+=("$1")
+      shift
+      ;;
+    --effort=*) has_effort=1; args+=("$1"); shift ;;
+    --tools)
+      has_tools=1
+      args+=("$1")
+      shift
+      (($#)) || { printf 'claudex-local: --tools requires a value\n' >&2; exit 2; }
+      args+=("$1")
+      shift
+      ;;
+    --tools=*) has_tools=1; args+=("$1"); shift ;;
+    *) prompt_parts+=("$1"); args+=("$1"); shift ;;
+  esac
+done
+
+if ((has_effort == 0)); then
+  prompt=" ${prompt_parts[*]-} "
+  if [[ "$prompt" =~ (security|oauth|authentication|authorization|payment|production|migration|architecture|irreversible|concurrency|permission|安全|认证|权限|支付|生产|迁移|架构|不可逆|并发) ]]; then
+    effort="xhigh"
+  elif [[ "$prompt" =~ (small|tiny|trivial|quick|typo|single-file|one[[:space:]_-]*file|简单|快速|拼写|单文件) ]]; then
+    effort="medium"
+  else
+    effort="high"
+  fi
+fi
+
+launch=(
+  --settings "$SETTINGS"
+  --append-system-prompt-file "$ORCHESTRATOR"
+  --setting-sources project,local
+)
+if ((has_model == 0)); then launch+=(--model "$ROOT_MODEL"); fi
+if ((has_effort == 0)); then launch+=(--effort "$effort"); fi
+if ((has_tools == 0)); then launch+=(--tools "$TOOLS"); fi
+
+export CLAUDE_CONFIG_DIR="${CLAUDEX_LOCAL_CLAUDE_CONFIG_DIR:-$CONFIG_HOME/claude}"
+export CLAUDE_CODE_SUBAGENT_MODEL="${CLAUDE_CODE_SUBAGENT_MODEL:-grok-4.5}"
+export CLAUDE_CODE_ENABLE_TASKS="${CLAUDE_CODE_ENABLE_TASKS:-true}"
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-false}"
+export CLAUDEX_LOCAL_ROOT_MODEL="$ROOT_MODEL"
+
+printf 'claudex-local: root=%s effort=%s subagent=%s config=%s\n' \
+  "$ROOT_MODEL" "${effort:-explicit}" "$CLAUDE_CODE_SUBAGENT_MODEL" "$CONFIG_HOME" >&2
+
+exec claude "${launch[@]}" "${args[@]}"
