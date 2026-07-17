@@ -106,4 +106,6 @@ export CLAUDEX_LOCAL_ROOT_MODEL="$ROOT_MODEL"
 printf 'claudex-local: root=%s effort=%s agents=frontmatter config=%s\n' \
   "$ROOT_MODEL" "${effort:-explicit}" "$CONFIG_HOME" >&2
 
-exec claude "${launch[@]}" "${args[@]}"
+# ${args[@]+...} guard: macOS bash 3.2 treats an empty array expansion as
+# unbound under set -u, which broke bare `claudex` with no arguments.
+exec claude "${launch[@]}" ${args[@]+"${args[@]}"}
