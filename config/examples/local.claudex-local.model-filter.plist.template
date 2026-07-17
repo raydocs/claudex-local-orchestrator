@@ -9,6 +9,7 @@
 <key>CLAUDEX_LOCAL_LISTEN_HOST</key><string>127.0.0.1</string>
 <key>CLAUDEX_LOCAL_LISTEN_PORT</key><string>8318</string>
 <key>CLAUDEX_LOCAL_COMPACTION_MODEL</key><string>__COMPACTION_MODEL__</string>
+<key>CLAUDEX_LOCAL_USAGE_LOG</key><string>__HOME__/.local/state/claudex-local/usage.jsonl</string>
 </dict>
 <key>RunAtLoad</key><true/><key>KeepAlive</key><true/><key>ProcessType</key><string>Background</string>
 <key>StandardOutPath</key><string>/tmp/claudex-local-adapter.stdout.log</string>

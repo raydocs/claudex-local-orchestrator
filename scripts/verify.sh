@@ -2,11 +2,11 @@
 set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
 cd "$ROOT"
-bash -n scripts/claudex-local scripts/bootstrap-macos.sh scripts/doctor.sh scripts/verify.sh scripts/oracle-consult
+bash -n scripts/claudex-local scripts/bootstrap-macos.sh scripts/doctor.sh scripts/verify.sh scripts/oracle-consult scripts/smoke.sh scripts/claudex-usage
 python3 <<'PY2'
 import json,pathlib,plistlib,re
 r=pathlib.Path('.')
-required=['README.md','LICENSE','config/models.json','config/orchestrator.md','config/examples/settings.json.template','config/examples/cliproxyapi.yaml.template','config/examples/local.claudex-local.model-filter.plist.template','adapter/model-filter-proxy.mjs','adapter/model-filter-proxy.test.mjs','scripts/claudex-local','scripts/bootstrap-macos.sh','scripts/doctor.sh','scripts/oracle-consult']
+required=['README.md','LICENSE','config/models.json','config/orchestrator.md','config/examples/settings.json.template','config/examples/cliproxyapi.yaml.template','config/examples/local.claudex-local.model-filter.plist.template','adapter/model-filter-proxy.mjs','adapter/model-filter-proxy.test.mjs','scripts/claudex-local','scripts/bootstrap-macos.sh','scripts/doctor.sh','scripts/oracle-consult','scripts/smoke.sh','scripts/claudex-usage']
 for p in required: assert (r/p).is_file(),p
 catalog=json.loads((r/'config/models.json').read_text())
 assert catalog.get('version') == 1
@@ -35,6 +35,7 @@ assert 'api-key: "kimi-test-key"' in y and 'name: "kimi-k3"' in y and 'alias: "k
 pl=plistlib.loads(render('config/examples/local.claudex-local.model-filter.plist.template').encode())
 assert pl['Label']=='local.claudex-local.model-filter'
 assert pl['EnvironmentVariables']['CLAUDEX_LOCAL_COMPACTION_MODEL']==roles['compaction']['model']
+assert pl['EnvironmentVariables']['CLAUDEX_LOCAL_USAGE_LOG']=='/Users/test/.local/state/claudex-local/usage.jsonl'
 agents=list((r/'agents').glob('*.md')); assert len(agents)>=6
 actual={}
 for a in agents:

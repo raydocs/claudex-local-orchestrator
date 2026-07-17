@@ -29,6 +29,7 @@ Claude Code -> 127.0.0.1:8318 adapter -> 127.0.0.1:8317 CLIProxyAPI
 - `config/models.json` 是模型和角色分配的单一来源；
 - 配置模板无密钥，安装时生成新的本地 client key；
 - macOS bootstrap、doctor、静态验证和 adapter 测试；
+- adapter 用量账本与 `claudex-usage` 汇总，并提供默认零 token 的端到端 smoke 检查；
 - 不静默安装供应商凭据，不伪造模型 alias。
 
 ## 快速开始
@@ -62,7 +63,7 @@ claudex-local
 
 网关必需模型由 `config/models.json` 中 `required_in_catalog && channel == "gateway"` 的角色自动派生：`gpt-5.6-sol`、`gpt-5.6-luna`、`gpt-5.6-terra`、`grok-4.5`、`kimi-k3`、`gemini-3.5-flash`、`glm-5.2`。
 
-`fable-5` 不属于网关目录；它由 `oracle-consult` 通过本机原生 `claude` 订阅调用。alias 不会赋予访问权；缺少真实模型时应停止并设计诚实的替代模型 fork。
+`claude-fable-5` 不属于网关目录；它由 `oracle-consult` 通过本机原生 `claude` 订阅调用。alias 不会赋予访问权；缺少真实模型时应停止并设计诚实的替代模型 fork。
 
 ## 验证
 

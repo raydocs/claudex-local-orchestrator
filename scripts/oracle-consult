@@ -1,7 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if (($#)); then
+if [[ "${1:-}" == --diff ]]; then
+  shift
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    printf 'oracle-consult: --diff must run inside a git repository\n' >&2
+    exit 2
+  fi
+  ref=HEAD
+  if (($#)) && git rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
+    ref="$1"
+    shift
+  fi
+  if (($#)); then instruction="$*"; else instruction='Review this diff.'; fi
+  diff_stat="$(git diff --stat "$ref" --)"
+  diff_file="$(mktemp)"
+  git diff "$ref" -- >"$diff_file"
+  diff_bytes="$(wc -c <"$diff_file" | tr -d '[:space:]')"
+  if ((diff_bytes > 200000)); then
+    diff_body="$(head -c 200000 "$diff_file")
+
+[diff truncated at 200 KB — review the rest separately]"
+  else
+    diff_body="$(cat "$diff_file")"
+  fi
+  rm -f "$diff_file"
+  question="$instruction
+
+Diff stat:
+$diff_stat
+
+Diff:
+$diff_body"
+elif (($#)); then
   question="$*"
 else
   question="$(cat)"
@@ -28,5 +59,14 @@ prompt="$prompt_prefix
 Review request:
 $question"
 
-exec env -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN -u CLAUDE_CONFIG_DIR \
-  claude -p --model fable-5 --tools Read,Grep,Glob "$prompt"
+# Read the oracle model from the single source of truth; the native claude CLI
+# needs the full model id. Prompt goes via stdin — a positional prompt after
+# --tools is swallowed by the flag's variadic parsing.
+MODELS="${CLAUDEX_LOCAL_CONFIG_HOME:-$HOME/.config/claudex-local}/models.json"
+ORACLE_MODEL="claude-fable-5"
+if [[ -f "$MODELS" ]]; then
+  ORACLE_MODEL="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["roles"]["oracle"]["model"])' "$MODELS" 2>/dev/null || printf 'claude-fable-5')"
+fi
+
+printf '%s' "$prompt" | env -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN -u CLAUDE_CONFIG_DIR \
+  claude -p --model "$ORACLE_MODEL" --tools Read,Grep,Glob

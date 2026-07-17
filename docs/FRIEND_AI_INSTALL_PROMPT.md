@@ -6,7 +6,7 @@
 
 强制规则：8317/8318 只绑定 127.0.0.1；不要发明 provider login flag；不要用误导 alias 假装缺失模型；不要自动运行付费 live canary；不要覆盖未检查的配置；不要修改普通 `claude` 的原生 subscription 配置；不要把 `KIMI_API_KEY` 放进命令历史、仓库或聊天。Kimi K3 是独立计费模型（Kimi Code 订阅或 Moonshot 按量 key，端点不同，见 docs/cliproxyapi-setup.md），Fable 5 Oracle 走本机原生订阅且只读。
 
-网关必需模型应从 `config/models.json` 派生，当前为 `gpt-5.6-sol`、`gpt-5.6-luna`、`gpt-5.6-terra`、`grok-4.5`、`kimi-k3`、`gemini-3.5-flash`、`glm-5.2`；`fable-5` 不参加网关目录检查。
+网关必需模型应从 `config/models.json` 派生，当前为 `gpt-5.6-sol`、`gpt-5.6-luna`、`gpt-5.6-terra`、`grok-4.5`、`kimi-k3`、`gemini-3.5-flash`、`glm-5.2`；`claude-fable-5` 不参加网关目录检查。
 
 执行顺序：
 

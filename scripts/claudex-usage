@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+days=14
+while (($#)); do
+  case "$1" in
+    --days)
+      shift
+      (($#)) || { printf 'claudex-usage: --days requires a positive integer\n' >&2; exit 2; }
+      days="$1"
+      ;;
+    --days=*) days="${1#--days=}" ;;
+    -h|--help) printf 'Usage: %s [--days N]\n' "$0"; exit 0 ;;
+    *) printf 'claudex-usage: unknown argument: %s\n' "$1" >&2; exit 2 ;;
+  esac
+  shift
+done
+[[ "$days" =~ ^[1-9][0-9]*$ ]] || { printf 'claudex-usage: --days requires a positive integer\n' >&2; exit 2; }
+
+ledger="${CLAUDEX_LOCAL_USAGE_LOG:-$HOME/.local/state/claudex-local/usage.jsonl}"
+if [[ ! -s "$ledger" ]]; then
+  printf 'claudex-usage: no usage records yet (%s)\n' "$ledger"
+  exit 0
+fi
+
+python3 - "$ledger" "$days" <<'PY2'
+import collections, datetime, json, pathlib, sys
+
+ledger = pathlib.Path(sys.argv[1])
+days = int(sys.argv[2])
+today = datetime.datetime.now(datetime.timezone.utc).date()
+first_day = today - datetime.timedelta(days=days - 1)
+models = collections.defaultdict(lambda: [0, 0, 0, 0, 0])
+daily = collections.defaultdict(lambda: [0, 0, 0, 0, 0])
+
+def count(value):
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0
+
+for line in ledger.read_text(errors='replace').splitlines():
+    try:
+        row = json.loads(line)
+        stamp = str(row['ts']).replace('Z', '+00:00')
+        day = datetime.datetime.fromisoformat(stamp).astimezone(datetime.timezone.utc).date()
+        if not first_day <= day <= today:
+            continue
+        model = row.get('model') or '(unknown)'
+        values = [1, count(row.get('input_tokens')), count(row.get('output_tokens')), count(row.get('cache_read_tokens')), int(row.get('route') == 'compaction')]
+        for bucket in (models[str(model)], daily[day.isoformat()]):
+            for index, value in enumerate(values):
+                bucket[index] += value
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+        continue
+
+if not models:
+    print(f'claudex-usage: no valid usage records in the last {days} days ({ledger})')
+    raise SystemExit(0)
+
+def table(headers, rows):
+    text = [[str(cell) for cell in row] for row in rows]
+    widths = [len(header) for header in headers]
+    for row in text:
+        widths = [max(width, len(cell)) for width, cell in zip(widths, row)]
+    print('  '.join(header.ljust(width) for header, width in zip(headers, widths)))
+    print('  '.join('-' * width for width in widths))
+    for row in text:
+        print('  '.join(cell.ljust(width) if index == 0 else cell.rjust(width) for index, (cell, width) in enumerate(zip(row, widths))))
+
+print(f'Usage ledger: {ledger}')
+print(f'Window: last {days} days (UTC)')
+print('\nPer-model totals')
+table(['MODEL', 'REQUESTS', 'INPUT', 'OUTPUT', 'CACHE_READ', 'COMPACTIONS'], [(model, *models[model]) for model in sorted(models)])
+print('\nPer-day totals')
+table(['DAY', 'REQUESTS', 'INPUT', 'OUTPUT', 'CACHE_READ', 'COMPACTIONS'], [(day, *daily[day]) for day in sorted(daily, reverse=True)])
+PY2

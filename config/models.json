@@ -4,7 +4,7 @@
   "roles": {
     "supervisor":         { "model": "gpt-5.6-sol",      "channel": "gateway", "agent": null,                   "required_in_catalog": true,  "metered": false },
     "compaction":         { "model": "gpt-5.6-luna",     "channel": "gateway", "agent": null,                   "required_in_catalog": true,  "metered": false },
-    "oracle":             { "model": "fable-5",          "channel": "native",  "agent": null,                   "required_in_catalog": false, "metered": false },
+    "oracle":             { "model": "claude-fable-5",   "channel": "native",  "agent": null,                   "required_in_catalog": false, "metered": false },
     "coding_worker":      { "model": "grok-4.5",         "channel": "gateway", "agent": "grok-worker",          "required_in_catalog": true,  "metered": false },
     "frontend_worker":    { "model": "kimi-k3",          "channel": "gateway", "agent": "kimi-frontend-worker", "required_in_catalog": true,  "metered": true },
     "researcher":         { "model": "grok-4.5",         "channel": "gateway", "agent": "grok-researcher",      "required_in_catalog": true,  "metered": false },

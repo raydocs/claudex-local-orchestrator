@@ -24,12 +24,12 @@ fail(){ printf 'bootstrap: %s\n' "$*" >&2; exit 1; }
 [[ "$(uname -s)" == Darwin ]] || fail 'macOS is required'
 for cmd in brew node python3 claude cli-proxy-api openssl curl nc launchctl; do command -v "$cmd" >/dev/null || fail "missing $cmd"; done
 BREW_CONFIG="$(brew --prefix)/etc/cliproxyapi.conf"
-for path in config/models.json config/examples/settings.json.template config/examples/cliproxyapi.yaml.template config/examples/local.claudex-local.model-filter.plist.template config/orchestrator.md scripts/claudex-local scripts/oracle-consult adapter/model-filter-proxy.mjs agents; do [[ -e "$ROOT/$path" ]] || fail "missing $path"; done
+for path in config/models.json config/examples/settings.json.template config/examples/cliproxyapi.yaml.template config/examples/local.claudex-local.model-filter.plist.template config/orchestrator.md scripts/claudex-local scripts/claudex-usage scripts/oracle-consult adapter/model-filter-proxy.mjs agents; do [[ -e "$ROOT/$path" ]] || fail "missing $path"; done
 printf 'bootstrap: prerequisites PASS\n'
 printf 'bootstrap: adapter 127.0.0.1:8318 -> CLIProxyAPI 127.0.0.1:8317\n'
 [[ "$MODE" == install ]] || exit 0
 backup(){ local p="$1"; if [[ -e "$p" || -L "$p" ]]; then ((REPLACE)) || fail "$p exists; inspect it and rerun with --replace-existing"; cp -pPR "$p" "$p.backup.$STAMP"; fi; }
-for p in "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/models.json" "$CONFIG/claude/agents" "$SHARE/model-filter-proxy.mjs" "$BIN/claudex-local" "$BIN/oracle-consult" "$PLIST" "$CLIPROXY" "$BREW_CONFIG"; do backup "$p"; done
+for p in "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/models.json" "$CONFIG/claude/agents" "$SHARE/model-filter-proxy.mjs" "$BIN/claudex-local" "$BIN/claudex-usage" "$BIN/oracle-consult" "$PLIST" "$CLIPROXY" "$BREW_CONFIG"; do backup "$p"; done
 mkdir -p "$CONFIG/claude" "$SHARE" "$BIN" "$HOME/.cli-proxy-api" "$HOME/Library/LaunchAgents"
 chmod 0700 "$CONFIG" "$CONFIG/claude" "$HOME/.cli-proxy-api"
 LOCAL_KEY="$(openssl rand -hex 32)"
@@ -66,10 +66,11 @@ rm -rf "$CONFIG/claude/agents"
 cp -R "$ROOT/agents" "$CONFIG/claude/agents"
 cp "$ROOT/adapter/model-filter-proxy.mjs" "$SHARE/model-filter-proxy.mjs"
 cp "$ROOT/scripts/claudex-local" "$BIN/claudex-local"
+cp "$ROOT/scripts/claudex-usage" "$BIN/claudex-usage"
 cp "$ROOT/scripts/oracle-consult" "$BIN/oracle-consult"
 chmod 0600 "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/models.json" "$CLIPROXY" "$PLIST"
 chmod 0644 "$SHARE/model-filter-proxy.mjs" "$CONFIG/claude/agents"/*.md
-chmod 0755 "$BIN/claudex-local" "$BIN/oracle-consult"
+chmod 0755 "$BIN/claudex-local" "$BIN/claudex-usage" "$BIN/oracle-consult"
 if brew list cliproxyapi >/dev/null 2>&1; then
   mkdir -p "$(dirname "$BREW_CONFIG")"
   ln -sfn "$CLIPROXY" "$BREW_CONFIG"
