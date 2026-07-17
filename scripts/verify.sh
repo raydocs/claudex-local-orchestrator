@@ -10,7 +10,6 @@ required=['README.md','LICENSE','config/models.json','config/orchestrator.md','c
 for p in required: assert (r/p).is_file(),p
 catalog=json.loads((r/'config/models.json').read_text())
 assert catalog.get('version') == 1
-assert isinstance(catalog.get('default_subagent_model'),str) and catalog['default_subagent_model']
 roles=catalog.get('roles'); assert isinstance(roles,dict) and roles
 for role_name,role in roles.items():
  assert isinstance(role,dict),role_name
@@ -19,7 +18,7 @@ for role_name,role in roles.items():
  assert isinstance(role.get('required_in_catalog'),bool),role_name
  assert role.get('agent') is None or isinstance(role['agent'],str),role_name
  assert isinstance(role.get('metered'),bool),role_name
-m={'__HOME__':'/Users/test','__LOCAL_API_KEY__':'local-test-key','__KIMI_API_KEY__':'kimi-test-key','__NODE_BINARY__':'/opt/homebrew/bin/node','__ADAPTER_PATH__':'/Users/test/.local/share/claudex-local/model-filter-proxy.mjs','__DEFAULT_SUBAGENT_MODEL__':catalog['default_subagent_model'],'__COMPACTION_MODEL__':roles['compaction']['model']}
+m={'__HOME__':'/Users/test','__LOCAL_API_KEY__':'local-test-key','__KIMI_API_KEY__':'kimi-test-key','__NODE_BINARY__':'/opt/homebrew/bin/node','__ADAPTER_PATH__':'/Users/test/.local/share/claudex-local/model-filter-proxy.mjs','__COMPACTION_MODEL__':roles['compaction']['model']}
 def render(p):
  t=(r/p).read_text()
  for a,b in m.items():t=t.replace(a,b)
@@ -27,7 +26,7 @@ def render(p):
  return t
 s=json.loads(render('config/examples/settings.json.template'))
 assert s['env']['ANTHROPIC_BASE_URL']=='http://127.0.0.1:8318'
-assert s['env']['CLAUDE_CODE_SUBAGENT_MODEL']==catalog['default_subagent_model']
+assert 'CLAUDE_CODE_SUBAGENT_MODEL' not in s['env']
 y=render('config/examples/cliproxyapi.yaml.template')
 assert 'host: "127.0.0.1"' in y and 'port: 8317' in y
 assert 'openai-compatibility:' in y and 'base-url: "https://api.kimi.com/coding/v1"' in y

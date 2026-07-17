@@ -1,6 +1,5 @@
 {
   "version": 1,
-  "default_subagent_model": "grok-4.5",
   "roles": {
     "supervisor":         { "model": "gpt-5.6-sol",      "channel": "gateway", "agent": null,                   "required_in_catalog": true,  "metered": false },
     "compaction":         { "model": "gpt-5.6-luna",     "channel": "gateway", "agent": null,                   "required_in_catalog": true,  "metered": false },

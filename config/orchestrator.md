@@ -37,6 +37,7 @@ Route visual or graphics-heavy slices to `kimi-frontend-worker`. Kimi K3 is mete
 ## Models and authentication
 
 - Lead: GPT-5.6 Sol. Launcher effort selection applies only to this root thread: small tasks use medium, ordinary work high, and security/production/architecture xhigh. Do not claim a per-subagent effort setting.
+- Each custom agent profile carries its own model in frontmatter; generic built-in agents (Explore, Plan, general-purpose) inherit the lead model — always prefer the custom profiles for delegation.
 - Default implementation and external research: Grok 4.5.
 - Metered visual/graphics implementation and explicitly marked escalations: Kimi K3.
 - Repository exploration: GPT-5.6 Terra.

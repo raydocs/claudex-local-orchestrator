@@ -99,10 +99,17 @@ PY2
     scripts/oracle-consult 'Reply with verdict approve if you can read this.' | grep -q approve
   }
 
+  subagent_model_canary(){
+    local output
+    output="$("$HOME/.local/bin/claudex-local" -p 'Launch the kimi-frontend-worker agent via the Agent tool with this exact task: "Do not use any tools. Reply only with the exact model id you are running as." Relay its reply verbatim, prefixed with RESOLVED:')"
+    printf '%s' "$output" | grep -q 'RESOLVED:.*kimi-k3'
+  }
+
   check 'compaction canary' compaction_canary
   check 'Kimi canary' kimi_canary
   check 'isolation probe' isolation_probe
   check 'Oracle canary' oracle_canary
+  check 'subagent model resolution' subagent_model_canary
 fi
 
 ((errors==0)) || exit 1

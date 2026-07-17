@@ -16,7 +16,6 @@ for required in "$SETTINGS" "$ORCHESTRATOR" "$MODELS"; do
 done
 
 DEFAULT_ROOT_MODEL="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["roles"]["supervisor"]["model"])' "$MODELS")"
-DEFAULT_SUBAGENT_MODEL="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["default_subagent_model"])' "$MODELS")"
 ROOT_MODEL="${CLAUDEX_LOCAL_ROOT_MODEL:-$DEFAULT_ROOT_MODEL}"
 
 has_model=0
@@ -89,12 +88,13 @@ if ((has_effort == 0)); then launch+=(--effort "$effort"); fi
 if ((has_tools == 0)); then launch+=(--tools "$TOOLS"); fi
 
 export CLAUDE_CONFIG_DIR="${CLAUDEX_LOCAL_CLAUDE_CONFIG_DIR:-$CONFIG_HOME/claude}"
-export CLAUDE_CODE_SUBAGENT_MODEL="${CLAUDE_CODE_SUBAGENT_MODEL:-$DEFAULT_SUBAGENT_MODEL}"
+# Do NOT set CLAUDE_CODE_SUBAGENT_MODEL: it force-overrides every agent
+# frontmatter model (verified live) and would flatten all workers onto one model.
 export CLAUDE_CODE_ENABLE_TASKS="${CLAUDE_CODE_ENABLE_TASKS:-true}"
 export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-false}"
 export CLAUDEX_LOCAL_ROOT_MODEL="$ROOT_MODEL"
 
-printf 'claudex-local: root=%s effort=%s subagent=%s config=%s\n' \
-  "$ROOT_MODEL" "${effort:-explicit}" "$CLAUDE_CODE_SUBAGENT_MODEL" "$CONFIG_HOME" >&2
+printf 'claudex-local: root=%s effort=%s agents=frontmatter config=%s\n' \
+  "$ROOT_MODEL" "${effort:-explicit}" "$CONFIG_HOME" >&2
 
 exec claude "${launch[@]}" "${args[@]}"
