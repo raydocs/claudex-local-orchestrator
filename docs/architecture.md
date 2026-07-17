@@ -2,7 +2,9 @@
 
 ClaudeX Local 是配置层，不是远程 SaaS，也不是 claudex-flow/workflowgrok runtime。主线程由 GPT-5.6 Sol 负责；自定义 Agent profiles 只接受独立、可验证的切片。Agent 最多并发三个，写路径必须互斥，主线程保留一个有用切片并负责最终集成。
 
-请求链路仍为 Claude Code → `127.0.0.1:8318` Node adapter → `127.0.0.1:8317` CLIProxyAPI。adapter 只对 Sol 的原生 compact prompt 改写 model 为 Luna，其余请求原样转发。adapter 顺带记录每请求用量到本地 JSONL（best-effort，不影响转发）。通用实现默认路由到 Grok；前端、dataviz、游戏/shader、设计还原等视觉/图形密集切片才路由到独立计费的 Kimi K3。
+请求链路仍为 Claude Code → `127.0.0.1:8318` Node adapter → `127.0.0.1:8317` CLIProxyAPI。adapter 只对 Sol 的原生 compact prompt 改写 model 为 Luna，其余请求原样转发。adapter 顺带记录每请求用量到本地 JSONL（best-effort，不影响转发）。
+
+压缩分两层且触发线刻意错开：客户端（Claude Code → Luna）通过 settings 的 `CLAUDE_CODE_AUTO_COMPACT_WINDOW=244800` + `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=90` 在约 220k tokens 先触发，总结质量与保留内容可控；网关的 OpenAI 服务端压缩（`codex.context-management.compact-threshold`，约为 272k 窗口的 95% = 258400）只作兜底。若观察到账本里没有大 input 的 compaction 行、上下文却在缩小，说明兜底层在干活，应检查客户端线是否失效。通用实现默认路由到 Grok；前端、dataviz、游戏/shader、设计还原等视觉/图形密集切片才路由到独立计费的 Kimi K3。
 
 `oracle-consult` 不经过上述网关：它清除网关环境变量，通过本机原生 `claude` 订阅调用 Fable 5，并只开放 Read/Grep/Glob。Oracle 只提供复核证据，不写文件、不替代主线程决策。普通 `claude` 同样不加载这套 gateway settings，继续使用独立 Claude.ai subscription。
 

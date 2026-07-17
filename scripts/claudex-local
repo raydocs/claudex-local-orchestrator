@@ -21,10 +21,16 @@ ROOT_MODEL="${CLAUDEX_LOCAL_ROOT_MODEL:-$DEFAULT_ROOT_MODEL}"
 has_model=0
 has_effort=0
 has_tools=0
+has_perm=0
 args=()
 prompt_parts=()
 while (($#)); do
   case "$1" in
+    --dangerously-skip-permissions|--permission-mode|--permission-mode=*)
+      has_perm=1
+      args+=("$1")
+      shift
+      ;;
     --model)
       has_model=1
       args+=("$1")
@@ -86,6 +92,9 @@ launch=(
 if ((has_model == 0)); then launch+=(--model "$ROOT_MODEL"); fi
 if ((has_effort == 0)); then launch+=(--effort "$effort"); fi
 if ((has_tools == 0)); then launch+=(--tools "$TOOLS"); fi
+# Skip permission prompts by default (owner's choice); pass your own
+# --permission-mode or --dangerously-skip-permissions to override.
+if ((has_perm == 0)); then launch+=(--dangerously-skip-permissions); fi
 
 export CLAUDE_CONFIG_DIR="${CLAUDEX_LOCAL_CLAUDE_CONFIG_DIR:-$CONFIG_HOME/claude}"
 # Do NOT set CLAUDE_CODE_SUBAGENT_MODEL: it force-overrides every agent

@@ -49,6 +49,11 @@ Route visual or graphics-heavy slices to `kimi-frontend-worker`. Kimi K3 is mete
 - A CLIProxyAPI alias does not grant access and must not disguise another model.
 - `claudex-local` uses the dedicated gateway settings. Ordinary `claude` and `oracle-consult` remain a separate native Claude.ai subscription path.
 
+## Context hygiene
+
+- After a context compaction has occurred in this session, finish and verify the current slice, then recommend the user start a fresh `claudex` session for the next major task instead of opening new work in a compacted context.
+- Keep large raw content (long file dumps, full reports, big diffs) inside worker agents; the lead collects structured summaries. Worker context is disposable; lead context is the scarce resource.
+
 ## Oracle usage
 
 Use the read-only Fable 5 oracle through Bash command `oracle-consult` at these trigger points:

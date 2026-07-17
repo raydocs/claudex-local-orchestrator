@@ -8,6 +8,8 @@
 
 Kimi K3 独立计费（订阅配额或按量）。运行 live canary 或把非视觉任务升级到 Kimi 前，要由账号持有人确认调用范围和费用。Fable 5 Oracle 通过原生 `claude` 订阅侧通道运行，只允许 Read/Grep/Glob，不接写任务。
 
+`claudex-local` 默认追加 `--dangerously-skip-permissions`（属主决定，免每次确认）；需要恢复逐项确认时自行传 `--permission-mode` 或显式权限 flag 覆盖。该默认建立在会话硬隔离（无 skills/MCP/插件）与 orchestrator 安全条款之上，不改变"破坏性操作先确认"的行为规则。
+
 认证失败、model mismatch 或 timeout 不能通过伪造 alias、降低测试标准或隐藏错误解决。
 
 向 GitHub 提交前运行 `bash scripts/verify.sh`，并检查 `git diff --check` 与 staged secret scan；verify 会同时扫描 Moonshot key 形状并核对 Agent frontmatter 与 `config/models.json`。
