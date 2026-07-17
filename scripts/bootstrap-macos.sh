@@ -70,9 +70,17 @@ cp "$ROOT/scripts/oracle-consult" "$BIN/oracle-consult"
 chmod 0600 "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$CONFIG/models.json" "$CLIPROXY" "$PLIST"
 chmod 0644 "$SHARE/model-filter-proxy.mjs" "$CONFIG/claude/agents"/*.md
 chmod 0755 "$BIN/claudex-local" "$BIN/oracle-consult"
-mkdir -p "$(dirname "$BREW_CONFIG")"
-ln -sfn "$CLIPROXY" "$BREW_CONFIG"
-brew services restart cliproxyapi
+if brew list cliproxyapi >/dev/null 2>&1; then
+  mkdir -p "$(dirname "$BREW_CONFIG")"
+  ln -sfn "$CLIPROXY" "$BREW_CONFIG"
+  brew services restart cliproxyapi
+else
+  # Non-Homebrew CLIProxyAPI (e.g. a manually installed LaunchAgent): its live
+  # config is not ours to overwrite. Detect it and hand over honestly.
+  LIVE_CONF="$(ps -axo command | sed -n 's/.*cli-proxy-api .*-config \([^ ]*\).*/\1/p' | head -n1)"
+  printf 'bootstrap: WARN cliproxyapi is not a Homebrew service; skipped config symlink and restart\n' >&2
+  printf 'bootstrap: WARN merge the provider blocks and the new local api-key from %s into %s, then restart that gateway service yourself\n' "$CLIPROXY" "${LIVE_CONF:-your live gateway config}" >&2
+fi
 launchctl bootout "gui/$(id -u)" "$PLIST" >/dev/null 2>&1 || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 printf 'bootstrap: installed claudex-local; provider login is still human-owned\n'

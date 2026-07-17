@@ -9,8 +9,13 @@ check(){ if "$@" >/dev/null 2>&1; then printf 'PASS  %s\n' "$*"; else printf 'FA
 for c in claude cli-proxy-api node python3; do check command -v "$c"; done
 if command -v claude >/dev/null 2>&1; then printf 'NOTE  oracle side-channel available via native claude CLI\n'; fi
 for f in "$CONFIG/settings.json" "$CONFIG/orchestrator.md" "$MODELS" "$HOME/.local/bin/claudex-local" "$HOME/.local/share/claudex-local/model-filter-proxy.mjs"; do [[ -f "$f" ]] && printf 'PASS  %s\n' "$f" || { printf 'FAIL  %s\n' "$f"; errors=$((errors+1)); }; done
-if [[ -f "$HOME/.cli-proxy-api/config.yaml" ]] && grep -q 'api-key:[[:space:]]*"unset-kimi-key"' "$HOME/.cli-proxy-api/config.yaml"; then
-  printf 'FAIL  Moonshot Kimi key is still unset in %s\n' "$HOME/.cli-proxy-api/config.yaml"
+# Check the gateway config the running service actually uses; fall back to the
+# rendered default location for brew installs that are not running yet.
+LIVE_CONF="$(ps -axo command | sed -n 's/.*cli-proxy-api .*-config \([^ ]*\).*/\1/p' | head -n1)"
+[[ -n "$LIVE_CONF" && -f "$LIVE_CONF" ]] || LIVE_CONF="$HOME/.cli-proxy-api/config.yaml"
+printf 'NOTE  gateway config in effect: %s\n' "$LIVE_CONF"
+if [[ -f "$LIVE_CONF" ]] && grep -q 'api-key:[[:space:]]*"unset-kimi-key"' "$LIVE_CONF"; then
+  printf 'FAIL  Kimi key is still unset in %s\n' "$LIVE_CONF"
   errors=$((errors+1))
 fi
 check nc -z 127.0.0.1 8317
