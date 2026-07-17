@@ -27,7 +27,7 @@ def render(p):
 s=json.loads(render('config/examples/settings.json.template'))
 assert s['env']['ANTHROPIC_BASE_URL']=='http://127.0.0.1:8318'
 assert 'CLAUDE_CODE_SUBAGENT_MODEL' not in s['env']
-assert s['env']['CLAUDE_CODE_AUTO_COMPACT_WINDOW']=='244800' and s['env']['CLAUDE_AUTOCOMPACT_PCT_OVERRIDE']=='90'
+assert s['env']['CLAUDE_CODE_AUTO_COMPACT_WINDOW']=='244800' and s['env']['CLAUDE_AUTOCOMPACT_PCT_OVERRIDE']=='98'
 y=render('config/examples/cliproxyapi.yaml.template')
 assert 'host: "127.0.0.1"' in y and 'port: 8317' in y
 assert 'openai-compatibility:' in y and 'base-url: "https://api.kimi.com/coding/v1"' in y
