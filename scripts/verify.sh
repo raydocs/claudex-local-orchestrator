@@ -57,5 +57,8 @@ for pattern in [r'\bsk-[A-Za-z0-9_-]{20,}\b',r'\bsk-kimi-[A-Za-z0-9_-]{10,}\b',r
  assert not re.search(pattern,alltext)
 for forbidden in ['internal/mcpserver','claudex-workflow.v1.7.9']:
  assert forbidden not in alltext,forbidden
+launcher=(r/'scripts/claudex-local').read_text()
+for isolation in ['--setting-sources user,project,local','--strict-mcp-config','--disallowedTools "Skill,mcp__*"']:
+ assert isolation in launcher,isolation
 print('static verification: PASS')
 PY2

@@ -20,7 +20,7 @@ Claude Code -> 127.0.0.1:8318 adapter -> 127.0.0.1:8317 CLIProxyAPI
 
 ## 特性
 
-- 独立 `claudex-local` launcher，不影响普通 `claude`；
+- 独立 `claudex-local` launcher，不影响普通 `claude`；会话硬隔离：不加载 `~/.claude` 的 plugins/skills，禁用一切 skill 与 MCP 注入；
 - 启动前按任务为主线程选择 medium/high/xhigh effort；
 - 最多三个并行 Agent，写范围必须互斥；
 - 默认实现交给 Grok；视觉/图形密集切片才使用独立计费的 Kimi K3，避免无意消耗配额或费用；

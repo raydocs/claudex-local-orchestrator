@@ -40,6 +40,7 @@ Route visual or graphics-heavy slices to `kimi-frontend-worker`. Kimi K3 is mete
 - Selected transcript extraction: GLM 5.2.
 - Compact requests may route from Sol to GPT-5.6 Luna through the local adapter.
 - Report requested and observed resolved model separately. Never silently fall back.
+- Never invoke other AI CLIs or assistants through Bash (`codex`, `gemini`, `grok`, plain `claude`, or similar). The model lineup is fixed by `config/models.json`; the only sanctioned out-of-gateway model call is `oracle-consult`.
 - A CLIProxyAPI alias does not grant access and must not disguise another model.
 - `claudex-local` uses the dedicated gateway settings. Ordinary `claude` and `oracle-consult` remain a separate native Claude.ai subscription path.
 

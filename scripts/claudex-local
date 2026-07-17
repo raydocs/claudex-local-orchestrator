@@ -77,7 +77,12 @@ fi
 launch=(
   --settings "$SETTINGS"
   --append-system-prompt-file "$ORCHESTRATOR"
-  --setting-sources project,local
+  # "user" scope resolves inside the isolated CLAUDE_CONFIG_DIR below, not
+  # ~/.claude; excluding it would silently drop the custom agent profiles.
+  --setting-sources user,project,local
+  # Hard isolation: no skills, no MCP servers from any scope.
+  --strict-mcp-config
+  --disallowedTools "Skill,mcp__*"
 )
 if ((has_model == 0)); then launch+=(--model "$ROOT_MODEL"); fi
 if ((has_effort == 0)); then launch+=(--effort "$effort"); fi
