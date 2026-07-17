@@ -8,6 +8,8 @@ ClaudeX Local 是配置层，不是远程 SaaS，也不是 claudex-flow/workflow
 
 会话隔离：launcher 通过独立 `CLAUDE_CONFIG_DIR` 隔断 `~/.claude` 的 plugins/skills，`--strict-mcp-config` 与 `--disallowedTools "Skill,mcp__*"` 再挡住任何 scope 的 skill 与 MCP 注入（实测三者叠加后 skills/MCP 为零、六个自定义 agent 完整可用）。`--setting-sources` 必须包含 `user`——该 scope 已被重定向到隔离目录，排除它会把自家 agent profiles 一并关掉。orchestrator 同时禁止通过 Bash 调用其他 AI CLI；唯一的网关外模型调用是 `oracle-consult`。
 
+已知残留：Claude Code 会无条件加载用户全局 `~/.claude/CLAUDE.md`（实测不受 `CLAUDE_CONFIG_DIR` 与 `--setting-sources` 控制）。orchestrator.md 以更高位阶的 Precedence 规则显式作废其中"路由到其他 AI 体系"的记忆（Codex-first、fusion、外部模型分配表等）。claudex 会话自己的 user 级记忆放 `~/.config/claudex-local/claude/CLAUDE.md`；项目级 CLAUDE.md 与普通 `claude` 共享，这是有意的。
+
 模型与角色分配集中在 `config/models.json`；Agent prompt 仍是静态安全产物，由 `scripts/verify.sh` 检查双向一致性。
 
 Amp-style 指工作原则：验收先行、按独立切片并行、最小上下文、一次收集、主线程验证、通过即停。本项目与 Amp 无隶属关系。
